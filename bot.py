@@ -1,5 +1,5 @@
 import types
-
+import keyboard
 import config
 from libs import*
 
@@ -15,18 +15,18 @@ dp = Dispatcher(bot, storage=storage)
 # start
 @dp.message_handler(commands=['start', 'help'])
 async def start(message: types.Message):
-    await message.answer("Привет, я бот для поиска фильмов на кинопоиске, чтобы узреть мой функционал пропиши '/'")
-
+    await bot.send_message(message.chat.id, f"Привет, *{message.from_user.first_name},* я бот для поиска фильмов на кинопоиске, чтобы узреть мой функционал пропиши '/'", reply_markup=keyboard.start, parse_mode='Markdown')
 
 
 
 # search
-@dp.message_handler(Command("search"), state=None)
+@dp.message_handler(content_types=['text'], state=None)
 async def search(message:types.Message):
-    await message.answer("Введите название фильма")
+    if message.text == 'Поиск фильмов':
+        await message.answer("Введите название фильма")
 
-    # changing state
-    await find.que.set()
+        # changing state
+        await find.que.set()
 
 # function that parse site and search cinema
 @dp.message_handler(state=find.que)
