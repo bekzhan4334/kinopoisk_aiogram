@@ -4,7 +4,8 @@ import config
 from libs import*
 
 class find(StatesGroup):
-    que = State()
+    que1 = State()
+    que2 = State()
 
 
 # bot init
@@ -18,7 +19,6 @@ async def start(message: types.Message):
     await bot.send_message(message.chat.id, f"Привет, *{message.from_user.first_name},* я бот для поиска фильмов на кинопоиске, чтобы узреть мой функционал пропиши '/'", reply_markup=keyboard.start, parse_mode='Markdown')
 
 
-
 # search
 @dp.message_handler(content_types=['text'], state=None)
 async def search(message:types.Message):
@@ -26,10 +26,18 @@ async def search(message:types.Message):
         await message.answer("Введите название фильма")
 
         # changing state
-        await find.que.set()
+        await find.que1.set()
+
+    elif message.text == 'Новости':
+        await message.answer("Приятного чтения☺️")
+        await find.que2.set()
+
+    else:
+        await message.answer('Я тебя не понял, пожалуйста используй команды 🙏')
+
 
 # function that parse site and search cinema
-@dp.message_handler(state=find.que)
+@dp.message_handler(state=find.que1)
 async def query(message:types.Message, state: FSMContext):
     answer=message.text
     link = config.url + answer
@@ -74,28 +82,22 @@ async def query(message:types.Message, state: FSMContext):
 # media button
 
 
-@dp.message_handler(commands=['lastnews'])
-async def news(message: types.Message):
+@dp.message_handler(state=find.que2)
+async def news(message: types.Message, state=FSMContext):
+    print('Im here!')
     # getting response from site
     link = 'https://www.kinopoisk.ru/media/news/'
     response = requests.get(link)
-
+    p
     # parsing this page
     soup = BeautifulSoup(response.text, "html.parser")
 
     # searching by class
-    news = soup.find("div", class_="post-feature-card__inner")
-    news = news.a.get('href')
-    await message.answer(config.main + news)
-
-
-
-
-# in case of useless messages
-@dp.message_handler()
-async def any(message: types.Message):
-    await message.answer('Я тебя не понял, пожалуйста используй команды 🙏')
-
+    n = soup.find_all("div", class_="post-feature-card__inner")
+    n = n.a.get('href')
+    print(n)
+    await message.answer(config.main + n)
+    await state.finish()
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp,skip_updates=True)
